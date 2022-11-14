@@ -6,7 +6,7 @@ let programInfo;
 async function main(){
 	initWebGL();
 	await loadShaders();
-	// Init webgl components(framebuffers and such)
+	loadWebGLComponents();
 	// Begin animation loop
 }
 
@@ -25,6 +25,25 @@ function loadShader(gl, type, source) {
 		return null;
 	}
 	return shader;
+}
+
+function loadWebGLComponents(){
+	const positions = [
+		-1, -1,
+		-1, 1,
+		1, 1,
+		-1, -1,
+		1, 1,
+		1, -1
+	];
+
+	const vao = gl.createVertexArray();
+	gl.bindVertexArray(vao);
+	const buffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	gl.enableVertexAttribArray(0);
+	gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
 }
 
 async function loadShaders(){
@@ -53,6 +72,8 @@ async function loadShaders(){
 			vertexPosition: gl.getAttribLocation(shaderProgram, 'aPosition'),
 		}
 	};
+
+	gl.useProgram(programInfo.shaderProgram);
 }
 
 window.onload = main;
