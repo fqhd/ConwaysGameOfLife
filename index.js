@@ -1,7 +1,15 @@
 'use strict';
 
+const WIDTH = 2048;
+const HEIGHT = 2048;
 let gl;
 let programInfo;
+const camera = {
+	x: 0,
+	y: 0,
+	zoom: 1
+};
+let texture;
 
 async function main(){
 	initWebGL();
@@ -27,7 +35,31 @@ function loadShader(gl, type, source) {
 	return shader;
 }
 
+function loadTexture() {
+	const imageData = [];
+	for(let y = 0; y < HEIGHT; y++){
+		for(let x = 0; x < WIDTH; x++){
+			if(x == y){
+				imageData.push(255);
+			}else{
+				imageData.push(0);
+			}
+		}
+	}
+
+	texture = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, WIDTH, HEIGHT, 0, gl.RED, gl.UNSIGNED_BYTE, new Uint8Array(imageData));
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+}
+
 function loadWebGLComponents(){
+	createQuad();
+	loadTexture();
+}
+
+function createQuad() {
 	const positions = [
 		-1, -1,
 		-1, 1,
@@ -77,6 +109,8 @@ async function loadShaders(){
 }
 
 function beginAnimationLoop(){
+	// Update texture
+	// Draw texture
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 	requestAnimationFrame(beginAnimationLoop);
 }
