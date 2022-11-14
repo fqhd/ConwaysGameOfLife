@@ -7,7 +7,7 @@ async function main(){
 	initWebGL();
 	await loadShaders();
 	loadWebGLComponents();
-	// Begin animation loop
+	beginAnimationLoop();
 }
 
 function initWebGL(){
@@ -73,7 +73,12 @@ async function loadShaders(){
 		}
 	};
 
-	gl.useProgram(programInfo.shaderProgram);
+	gl.useProgram(programInfo.program);
+}
+
+function beginAnimationLoop(){
+	gl.drawArrays(gl.TRIANGLES, 0, 6);
+	requestAnimationFrame(beginAnimationLoop);
 }
 
 window.onload = main;
