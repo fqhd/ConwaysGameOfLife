@@ -1,7 +1,11 @@
 'use strict';
 
-const WIDTH = 100;
-const HEIGHT = 100;
+const { mat4 } = glMatrix;
+
+const GRID_WIDTH = 100;
+const GRID_HEIGHT = 100;
+let canvasWidth;
+let canvasHeight;
 let gl;
 let programInfo;
 const camera = {
@@ -21,6 +25,8 @@ async function main(){
 function initWebGL(){
 	const canvas = document.getElementById('ourCanvas');
 	gl = canvas.getContext('webgl2');
+	canvasWidth = canvas.clientWidth;
+	canvasHeight = canvas.clientHeight;
 }
 
 function loadShader(gl, type, source) {
@@ -37,8 +43,8 @@ function loadShader(gl, type, source) {
 
 function loadTexture() {
 	const imageData = [];
-	for(let y = 0; y < HEIGHT; y++){
-		for(let x = 0; x < WIDTH; x++){
+	for(let y = 0; y < GRID_HEIGHT; y++){
+		for(let x = 0; x < GRID_WIDTH; x++){
 			if(x == y){
 				imageData.push(255);
 			}else{
@@ -49,7 +55,7 @@ function loadTexture() {
 
 	texture = gl.createTexture();
 	gl.bindTexture(gl.TEXTURE_2D, texture);
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, WIDTH, HEIGHT, 0, gl.RED, gl.UNSIGNED_BYTE, new Uint8Array(imageData));
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, GRID_WIDTH, GRID_HEIGHT, 0, gl.RED, gl.UNSIGNED_BYTE, new Uint8Array(imageData));
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 }
@@ -102,20 +108,31 @@ async function loadShaders(){
 		program: shaderProgram,
 		attribLocations: {
 			vertexPosition: gl.getAttribLocation(shaderProgram, 'aPosition'),
-		}
+		},
+		uniformLocations: {
+			orthoMatrix: gl.getUniformLocation(shaderProgram, 'orthoMatrix'),
+		},
 	};
 
 	gl.useProgram(programInfo.program);
 }
 
+function getCameraOrthoMatrix(){
+	const matrix = mat4.create();
+	mat4.ortho(matrix, 0, canvasWidth, 0, canvasHeight, 0.0, 1.0);
+	console.log(canvasWidth, canvasHeight);
+	return matrix;
+}
+
 function beginAnimationLoop(){
 	// Update texture
-	// Draw texture
 	drawFrame();
 	requestAnimationFrame(beginAnimationLoop);
 }
 
 function drawFrame() {
+	const matrix = getCameraOrthoMatrix();
+	gl.uniformMatrix4fv(programInfo.uniformLocations.orthoMatrix, false, matrix);
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
