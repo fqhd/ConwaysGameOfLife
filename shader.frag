@@ -1,8 +1,13 @@
 #version 300 es
 precision mediump float;
 
+in vec2 uv;
+
 out vec4 outColor;
 
+uniform sampler2D ourTexture; // The raw texture of conways game of life
+
 void main(){
-	outColor = vec4(1.0, 0.0, 0.0, 1.0);
+	vec3 texColor = texture(ourTexture, uv).rrr;
+	outColor = vec4(texColor, 1.0);
 }

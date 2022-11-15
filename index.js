@@ -1,7 +1,7 @@
 'use strict';
 
-const WIDTH = 2048;
-const HEIGHT = 2048;
+const WIDTH = 100;
+const HEIGHT = 100;
 let gl;
 let programInfo;
 const camera = {
@@ -111,8 +111,13 @@ async function loadShaders(){
 function beginAnimationLoop(){
 	// Update texture
 	// Draw texture
-	gl.drawArrays(gl.TRIANGLES, 0, 6);
+	drawFrame();
 	requestAnimationFrame(beginAnimationLoop);
+}
+
+function drawFrame() {
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
 window.onload = main;
