@@ -10,7 +10,7 @@ let shaderProgram;
 const camera = {
 	x: 200,
 	y: 200,
-	zoom: 1
+	zoom: 32
 };
 let texture;
 
