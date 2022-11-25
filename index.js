@@ -3,7 +3,6 @@
 const { mat4 } = glMatrix;
 
 const GRID_WIDTH = 100;
-const GRID_HEIGHT = 100;
 let canvasWidth;
 let canvasHeight;
 let gl;
@@ -43,21 +42,20 @@ function loadShader(gl, type, source) {
 
 function loadTexture() {
 	const imageData = [];
-	for(let y = 0; y < GRID_HEIGHT; y++){
+	for(let y = 0; y < GRID_WIDTH; y++){
 		for(let x = 0; x < GRID_WIDTH; x++){
-			if(x == y){
-				imageData.push(255);
-			}else{
-				imageData.push(0);
-			}
+			imageData.push(parseInt(Math.random() * 255));
+			imageData.push(parseInt(Math.random() * 255));
+			imageData.push(parseInt(Math.random() * 255));
 		}
 	}
 
 	texture = gl.createTexture();
 	gl.bindTexture(gl.TEXTURE_2D, texture);
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, GRID_WIDTH, GRID_HEIGHT, 0, gl.RED, gl.UNSIGNED_BYTE, new Uint8Array(imageData));
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, GRID_WIDTH, GRID_WIDTH, 0, gl.RGB, gl.UNSIGNED_BYTE, new Uint8Array(imageData));
+	
 }
 
 function loadWebGLComponents(){
@@ -67,12 +65,12 @@ function loadWebGLComponents(){
 
 function createQuad() {
 	const positions = [
-		-1, -1,
-		-1, 1,
-		1, 1,
-		-1, -1,
-		1, 1,
-		1, -1
+		-0.5, -0.5,
+		-0.5, 0.5,
+		0.5, 0.5,
+		-0.5, -0.5,
+		0.5, 0.5,
+		0.5, -0.5
 	];
 
 	const vao = gl.createVertexArray();
@@ -120,7 +118,6 @@ async function loadShaders(){
 function getCameraOrthoMatrix(){
 	const matrix = mat4.create();
 	mat4.ortho(matrix, 0, canvasWidth, 0, canvasHeight, 0.0, 1.0);
-	console.log(canvasWidth, canvasHeight);
 	return matrix;
 }
 
