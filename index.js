@@ -1,6 +1,6 @@
 'use strict';
 
-const { mat4 } = glMatrix;
+const { mat4, vec3 } = glMatrix;
 
 const GRID_WIDTH = 512;
 let canvasWidth;
@@ -8,8 +8,8 @@ let canvasHeight;
 let gl;
 let shaderProgram;
 const camera = {
-	x: 0,
-	y: 0,
+	x: 200,
+	y: 200,
 	zoom: 1
 };
 let texture;
@@ -111,6 +111,10 @@ async function loadShaders(){
 function getCameraOrthoMatrix(){
 	const matrix = mat4.create();
 	mat4.ortho(matrix, 0, canvasWidth, 0, canvasHeight, 0.0, 1.0);
+
+	mat4.translate(matrix, matrix, vec3.fromValues(-camera.x + gl.canvas.clientWidth/2, -camera.y + gl.canvas.clientHeight/2, 0));
+	mat4.scale(matrix, matrix, vec3.fromValues(camera.zoom, camera.zoom, 0.0));
+
 	return matrix;
 }
 
