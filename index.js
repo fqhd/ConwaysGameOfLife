@@ -138,10 +138,9 @@ function getCameraOrthoMatrix(){
 	const matrix = mat4.create();
 	mat4.ortho(matrix, 0, canvasWidth, 0, canvasHeight, 0.0, 1.0);
 
-	mat4.translate(matrix, matrix, vec3.fromValues(-camera.x + gl.canvas.clientWidth/2, -camera.y + gl.canvas.clientHeight/2, 0));
-
 	const sMatrix = mat4.create();
 	mat4.scale(sMatrix, sMatrix, vec3.fromValues(camera.zoom, camera.zoom, 0.0));
+	mat4.translate(matrix, matrix, vec3.fromValues(-camera.x + gl.canvas.clientWidth/2, -camera.y + gl.canvas.clientHeight/2, 0));
 
 	mat4.mul(matrix, sMatrix, matrix);
 
