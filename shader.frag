@@ -8,6 +8,6 @@ out vec4 outColor;
 uniform sampler2D ourTexture; // The raw texture of conways game of life
 
 void main(){
-	vec3 texColor = texture(ourTexture, uv).rgb;
-	outColor = vec4(texColor, 1.0);
+	float texColor = texture(ourTexture, uv).r;
+	outColor = vec4(texColor, texColor, texColor, 1.0);
 }

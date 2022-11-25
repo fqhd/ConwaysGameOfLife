@@ -45,8 +45,6 @@ function loadTexture() {
 	for(let y = 0; y < GRID_WIDTH; y++){
 		for(let x = 0; x < GRID_WIDTH; x++){
 			imageData.push(parseInt(Math.random() * 255));
-			imageData.push(parseInt(Math.random() * 255));
-			imageData.push(parseInt(Math.random() * 255));
 		}
 	}
 
@@ -54,7 +52,7 @@ function loadTexture() {
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, GRID_WIDTH, GRID_WIDTH, 0, gl.RGB, gl.UNSIGNED_BYTE, new Uint8Array(imageData));
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, GRID_WIDTH, GRID_WIDTH, 0, gl.RED, gl.UNSIGNED_BYTE, new Uint8Array(imageData));
 	
 }
 
