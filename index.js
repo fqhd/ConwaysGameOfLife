@@ -2,11 +2,11 @@
 
 const { mat4 } = glMatrix;
 
-const GRID_WIDTH = 100;
+const GRID_WIDTH = 512;
 let canvasWidth;
 let canvasHeight;
 let gl;
-let programInfo;
+let shaderProgram;
 const camera = {
 	x: 0,
 	y: 0,
@@ -44,7 +44,11 @@ function loadTexture() {
 	const imageData = [];
 	for(let y = 0; y < GRID_WIDTH; y++){
 		for(let x = 0; x < GRID_WIDTH; x++){
-			imageData.push(parseInt(Math.random() * 255));
+			if(Math.random() < 0.5){
+				imageData.push(0);
+			}else{
+				imageData.push(255);
+			}
 		}
 	}
 
@@ -63,12 +67,12 @@ function loadWebGLComponents(){
 
 function createQuad() {
 	const positions = [
-		-0.5, -0.5,
-		-0.5, 0.5,
-		0.5, 0.5,
-		-0.5, -0.5,
-		0.5, 0.5,
-		0.5, -0.5
+		0, 0,
+		0, GRID_WIDTH,
+		GRID_WIDTH, GRID_WIDTH,
+		0, 0,
+		GRID_WIDTH, GRID_WIDTH,
+		GRID_WIDTH, 0
 	];
 
 	const vao = gl.createVertexArray();
@@ -90,7 +94,7 @@ async function loadShaders(){
 	const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
 	const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
 	
-	const shaderProgram = gl.createProgram();
+	shaderProgram = gl.createProgram();
 	gl.attachShader(shaderProgram, vertexShader);
 	gl.attachShader(shaderProgram, fragmentShader);
 	gl.linkProgram(shaderProgram);
@@ -100,17 +104,8 @@ async function loadShaders(){
 		return null;
 	}
 
-	programInfo = {
-		program: shaderProgram,
-		attribLocations: {
-			vertexPosition: gl.getAttribLocation(shaderProgram, 'aPosition'),
-		},
-		uniformLocations: {
-			orthoMatrix: gl.getUniformLocation(shaderProgram, 'orthoMatrix'),
-		},
-	};
-
-	gl.useProgram(programInfo.program);
+	gl.useProgram(shaderProgram);
+	gl.uniform1f(gl.getUniformLocation(shaderProgram, 'gridWidth'), GRID_WIDTH);
 }
 
 function getCameraOrthoMatrix(){
@@ -127,7 +122,7 @@ function beginAnimationLoop(){
 
 function drawFrame() {
 	const matrix = getCameraOrthoMatrix();
-	gl.uniformMatrix4fv(programInfo.uniformLocations.orthoMatrix, false, matrix);
+	gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, 'orthoMatrix'), false, matrix);
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
