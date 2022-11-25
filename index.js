@@ -40,8 +40,8 @@ function initWebGL(){
 	});
 	canvas.addEventListener('mousemove', e => {
 		if(isMouseDown){
-			camera.x -= e.movementX;
-			camera.y += e.movementY;
+			camera.x -= e.movementX * 1/camera.zoom;
+			camera.y += e.movementY * 1/camera.zoom;
 		}
 	});
 	canvas.addEventListener('wheel', e => {
@@ -141,7 +141,7 @@ function getCameraOrthoMatrix(){
 	mat4.translate(matrix, matrix, vec3.fromValues(-camera.x + gl.canvas.clientWidth/2, -camera.y + gl.canvas.clientHeight/2, 0));
 
 	const sMatrix = mat4.create();
-	mat4.scale(sMatrix, mat4.create(), vec3.fromValues(camera.zoom, camera.zoom, 0.0));
+	mat4.scale(sMatrix, sMatrix, vec3.fromValues(camera.zoom, camera.zoom, 0.0));
 
 	mat4.mul(matrix, sMatrix, matrix);
 
