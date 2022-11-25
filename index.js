@@ -2,14 +2,12 @@
 
 const { mat4, vec3 } = glMatrix;
 
-const GRID_WIDTH = 512;
-let canvasWidth;
-let canvasHeight;
+const GRID_WIDTH = 128;
 let gl;
 let shaderProgram;
 const camera = {
-	x: 200,
-	y: 200,
+	x: 0,
+	y: 0,
 	zoom: 32
 };
 let texture;
@@ -26,8 +24,6 @@ async function main(){
 function initWebGL(){
 	const canvas = document.getElementById('ourCanvas');
 	gl = canvas.getContext('webgl2');
-	canvasWidth = canvas.clientWidth;
-	canvasHeight = canvas.clientHeight;
 	canvas.addEventListener('mousedown', e => {
 		if(e.button == 0){
 			isMouseDown = true;
@@ -136,13 +132,13 @@ async function loadShaders(){
 
 function getCameraOrthoMatrix(){
 	const matrix = mat4.create();
-	mat4.ortho(matrix, 0, canvasWidth, 0, canvasHeight, 0.0, 1.0);
+	mat4.ortho(matrix, 0, gl.canvas.clientWidth, 0, gl.canvas.clientHeight, 0.0, 1.0); 
+
 
 	const sMatrix = mat4.create();
 	mat4.scale(sMatrix, sMatrix, vec3.fromValues(camera.zoom, camera.zoom, 0.0));
-	mat4.translate(matrix, matrix, vec3.fromValues(-camera.x + gl.canvas.clientWidth/2, -camera.y + gl.canvas.clientHeight/2, 0));
-
 	mat4.mul(matrix, sMatrix, matrix);
+	mat4.translate(matrix, matrix, vec3.fromValues(-camera.x + gl.canvas.clientWidth/2 - GRID_WIDTH/2, -camera.y + gl.canvas.clientHeight/2 - GRID_WIDTH/2, 0));
 
 	return matrix;
 }
