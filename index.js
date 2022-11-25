@@ -13,6 +13,8 @@ const camera = {
 	zoom: 32
 };
 let texture;
+let isMouseDown = false;
+
 
 async function main(){
 	initWebGL();
@@ -26,6 +28,29 @@ function initWebGL(){
 	gl = canvas.getContext('webgl2');
 	canvasWidth = canvas.clientWidth;
 	canvasHeight = canvas.clientHeight;
+	canvas.addEventListener('mousedown', e => {
+		if(e.button == 0){
+			isMouseDown = true;
+		}
+	});
+	canvas.addEventListener('mouseup', e => {
+		if(e.button == 0){
+			isMouseDown = false;
+		}
+	});
+	canvas.addEventListener('mousemove', e => {
+		if(isMouseDown){
+			camera.x -= e.movementX;
+			camera.y += e.movementY;
+		}
+	});
+	canvas.addEventListener('wheel', e => {
+		if(e.deltaY > 0) {
+			camera.zoom /= 1.1;
+		}else{
+			camera.zoom *= 1.1;
+		}
+	});
 }
 
 function loadShader(gl, type, source) {
@@ -56,8 +81,9 @@ function loadTexture() {
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 	gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, GRID_WIDTH, GRID_WIDTH, 0, gl.RED, gl.UNSIGNED_BYTE, new Uint8Array(imageData));
-	
 }
 
 function loadWebGLComponents(){
@@ -113,7 +139,11 @@ function getCameraOrthoMatrix(){
 	mat4.ortho(matrix, 0, canvasWidth, 0, canvasHeight, 0.0, 1.0);
 
 	mat4.translate(matrix, matrix, vec3.fromValues(-camera.x + gl.canvas.clientWidth/2, -camera.y + gl.canvas.clientHeight/2, 0));
-	mat4.scale(matrix, matrix, vec3.fromValues(camera.zoom, camera.zoom, 0.0));
+
+	const sMatrix = mat4.create();
+	mat4.scale(sMatrix, mat4.create(), vec3.fromValues(camera.zoom, camera.zoom, 0.0));
+
+	mat4.mul(matrix, sMatrix, matrix);
 
 	return matrix;
 }
