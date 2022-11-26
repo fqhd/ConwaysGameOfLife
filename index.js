@@ -49,6 +49,9 @@ function initWebGL(){
 			camera.zoom *= 1.1;
 		}
 	});
+	document.addEventListener('keypress', () => {
+		updateTexture();
+	});
 	framebuffer = gl.createFramebuffer();
 }
 
@@ -69,17 +72,21 @@ function createTextures(){
 	textures.push(createTexture());
 }
 
+function setPixel(imageData, x, y, c){
+	imageData[y * GRID_WIDTH + x] = c;
+}
+
 function createTexture() {
 	const imageData = [];
 	for(let y = 0; y < GRID_WIDTH; y++){
 		for(let x = 0; x < GRID_WIDTH; x++){
-			if(Math.random() < 0.5){
-				imageData.push(0);
-			}else{
-				imageData.push(255);
-			}
+			imageData.push(255);
 		}
 	}
+
+	setPixel(imageData, 40, 40, 0);
+	setPixel(imageData, 40, 41, 0);
+	setPixel(imageData, 40, 42, 0);
 
 	const texture = gl.createTexture();
 	gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -178,14 +185,12 @@ function updateTexture() {
 }
 
 function beginAnimationLoop(){
-	updateTexture();
 	drawFrame();
 	requestAnimationFrame(beginAnimationLoop);
 }
 
 function drawFrame() {
 	const matrix = getCameraOrthoMatrix();
-	console.log(gl.canvas.clientHeight);
 	gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight);
 	gl.useProgram(canvasShader);
 	gl.uniformMatrix4fv(gl.getUniformLocation(canvasShader, 'orthoMatrix'), false, matrix);
