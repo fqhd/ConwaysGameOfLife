@@ -8,6 +8,7 @@ uniform mat4 orthoMatrix;
 uniform float gridWidth;
 
 void main() {
-	uv = aPosition / gridWidth;
-	gl_Position = orthoMatrix * vec4(aPosition, 0.0, 1.0);
+	vec2 vecPos = (aPosition + 1.0) / 2.0;
+	uv = vecPos;
+	gl_Position = orthoMatrix * vec4(vecPos * gridWidth, 0.0, 1.0);
 }

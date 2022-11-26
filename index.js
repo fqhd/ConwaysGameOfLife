@@ -4,15 +4,17 @@ const { mat4, vec3 } = glMatrix;
 
 const GRID_WIDTH = 128;
 let gl;
-let shaderProgram;
+let framebufferShader;
+let canvasShader;
 const camera = {
 	x: 0,
 	y: 0,
 	zoom: 32
 };
-let texture;
+let textures = [];
 let isMouseDown = false;
-
+let framebuffer;
+let textureCounter = 0;
 
 async function main(){
 	initWebGL();
@@ -47,6 +49,7 @@ function initWebGL(){
 			camera.zoom *= 1.1;
 		}
 	});
+	framebuffer = gl.createFramebuffer();
 }
 
 function loadShader(gl, type, source) {
@@ -61,7 +64,12 @@ function loadShader(gl, type, source) {
 	return shader;
 }
 
-function loadTexture() {
+function createTextures(){
+	textures.push(createTexture());
+	textures.push(createTexture());
+}
+
+function createTexture() {
 	const imageData = [];
 	for(let y = 0; y < GRID_WIDTH; y++){
 		for(let x = 0; x < GRID_WIDTH; x++){
@@ -73,28 +81,30 @@ function loadTexture() {
 		}
 	}
 
-	texture = gl.createTexture();
+	const texture = gl.createTexture();
 	gl.bindTexture(gl.TEXTURE_2D, texture);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 	gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, GRID_WIDTH, GRID_WIDTH, 0, gl.RED, gl.UNSIGNED_BYTE, new Uint8Array(imageData));
+
+	return texture;
 }
 
 function loadWebGLComponents(){
 	createQuad();
-	loadTexture();
+	createTextures();
 }
 
 function createQuad() {
 	const positions = [
-		0, 0,
-		0, GRID_WIDTH,
-		GRID_WIDTH, GRID_WIDTH,
-		0, 0,
-		GRID_WIDTH, GRID_WIDTH,
-		GRID_WIDTH, 0
+		-1, -1,
+		-1, 1,
+		1, 1,
+		-1, -1,
+		1, 1,
+		1, -1
 	];
 
 	const vao = gl.createVertexArray();
@@ -107,16 +117,23 @@ function createQuad() {
 }
 
 async function loadShaders(){
-	let vsSource = await fetch('./shader.vert');
+	framebufferShader = await loadShaderProgram('./framebufferShader.vert', './framebufferShader.frag');
+	canvasShader = await loadShaderProgram('./canvasShader.vert', './canvasShader.frag');
+	gl.useProgram(canvasShader);
+	gl.uniform1f(gl.getUniformLocation(canvasShader, 'gridWidth'), GRID_WIDTH);
+}
+
+async function loadShaderProgram(vsPath, fsPath){
+	let vsSource = await fetch(vsPath);
 	vsSource = await vsSource.text();
 
-	let fsSource = await fetch('./shader.frag');
+	let fsSource = await fetch(fsPath);
 	fsSource = await fsSource.text();
 
 	const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
 	const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
 	
-	shaderProgram = gl.createProgram();
+	const shaderProgram = gl.createProgram();
 	gl.attachShader(shaderProgram, vertexShader);
 	gl.attachShader(shaderProgram, fragmentShader);
 	gl.linkProgram(shaderProgram);
@@ -126,14 +143,12 @@ async function loadShaders(){
 		return null;
 	}
 
-	gl.useProgram(shaderProgram);
-	gl.uniform1f(gl.getUniformLocation(shaderProgram, 'gridWidth'), GRID_WIDTH);
+	return shaderProgram;
 }
 
 function getCameraOrthoMatrix(){
 	const matrix = mat4.create();
 	mat4.ortho(matrix, 0, gl.canvas.clientWidth, 0, gl.canvas.clientHeight, 0.0, 1.0); 
-
 
 	const sMatrix = mat4.create();
 	mat4.scale(sMatrix, sMatrix, vec3.fromValues(camera.zoom, camera.zoom, 0.0));
@@ -143,16 +158,38 @@ function getCameraOrthoMatrix(){
 	return matrix;
 }
 
+function getCurrentFramebufferTexture(){
+	return textures[textureCounter % 2];
+}
+
+function getCurrentCanvasTexture(){
+	return textures[(textureCounter + 1) % 2];
+}
+
+function updateTexture() {
+	gl.bindFramebuffer(gl.FRAMEBUFFER, framebuffer);
+	gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, getCurrentFramebufferTexture(), 0);
+	gl.bindTexture(gl.TEXTURE_2D, getCurrentCanvasTexture());
+	gl.viewport(0, 0, GRID_WIDTH, GRID_WIDTH);
+	gl.useProgram(framebufferShader);
+	gl.drawArrays(gl.TRIANGLES, 0, 6);
+	gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+	textureCounter++;
+}
+
 function beginAnimationLoop(){
-	// Update texture
+	updateTexture();
 	drawFrame();
 	requestAnimationFrame(beginAnimationLoop);
 }
 
 function drawFrame() {
 	const matrix = getCameraOrthoMatrix();
-	gl.uniformMatrix4fv(gl.getUniformLocation(shaderProgram, 'orthoMatrix'), false, matrix);
-	gl.bindTexture(gl.TEXTURE_2D, texture);
+	console.log(gl.canvas.clientHeight);
+	gl.viewport(0, 0, gl.canvas.clientWidth, gl.canvas.clientHeight);
+	gl.useProgram(canvasShader);
+	gl.uniformMatrix4fv(gl.getUniformLocation(canvasShader, 'orthoMatrix'), false, matrix);
+	gl.bindTexture(gl.TEXTURE_2D, getCurrentCanvasTexture());
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
