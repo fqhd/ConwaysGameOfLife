@@ -2,7 +2,7 @@
 
 const { mat4, vec3 } = glMatrix;
 
-const GRID_WIDTH = 128;
+let GRID_WIDTH = 128;
 let gl;
 let framebufferShader;
 let canvasShader;
@@ -21,6 +21,21 @@ async function main(){
 	await loadShaders();
 	loadWebGLComponents();
 	beginAnimationLoop();
+	loadGameOfLife('./games_of_life/life_in_life.png');
+}
+
+function loadGameOfLife(path) {
+	const image = new Image();
+	image.onload = () => {
+		GRID_WIDTH = image.width;
+		gl.bindTexture(gl.TEXTURE_2D, getCurrentCanvasTexture());
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+		gl.bindTexture(gl.TEXTURE_2D, getCurrentFramebufferTexture());
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+		gl.useProgram(canvasShader);
+		gl.uniform1f(gl.getUniformLocation(canvasShader, 'gridWidth'), GRID_WIDTH);
+	};
+	image.src = path;
 }
 
 function initWebGL(){
@@ -126,8 +141,6 @@ function createQuad() {
 async function loadShaders(){
 	framebufferShader = await loadShaderProgram('./framebufferShader.vert', './framebufferShader.frag');
 	canvasShader = await loadShaderProgram('./canvasShader.vert', './canvasShader.frag');
-	gl.useProgram(canvasShader);
-	gl.uniform1f(gl.getUniformLocation(canvasShader, 'gridWidth'), GRID_WIDTH);
 }
 
 async function loadShaderProgram(vsPath, fsPath){
@@ -185,6 +198,7 @@ function updateTexture() {
 }
 
 function beginAnimationLoop(){
+	// updateTexture();
 	drawFrame();
 	requestAnimationFrame(beginAnimationLoop);
 }

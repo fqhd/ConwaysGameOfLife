@@ -8,7 +8,7 @@ out vec4 outColor;
 uniform sampler2D ourTexture; // The raw texture of conways game of life
 
 void main(){
-    float texelSize = 1.0 / 128.0;
+    float texelSize = 1.0 / float(textureSize(ourTexture, 0).x);
 
     int numNeighbors = 0;
     for(int x = -1; x <= 1; ++x)
