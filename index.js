@@ -21,9 +21,9 @@ async function main(){
 	await loadShaders();
 	loadWebGLComponents();
 	beginAnimationLoop();
-	loadGameOfLife('./games_of_life/life_in_life.png');
 }
 
+/*
 function loadGameOfLife(path) {
 	const image = new Image();
 	image.onload = () => {
@@ -37,6 +37,7 @@ function loadGameOfLife(path) {
 	};
 	image.src = path;
 }
+*/
 
 function initWebGL(){
 	const canvas = document.getElementById('ourCanvas');
@@ -95,7 +96,11 @@ function createTexture() {
 	const imageData = [];
 	for(let y = 0; y < GRID_WIDTH; y++){
 		for(let x = 0; x < GRID_WIDTH; x++){
-			imageData.push(255);
+			if(Math.random() >= 0.1){
+				imageData.push(255);
+			}else{
+				imageData.push(0);
+			}
 		}
 	}
 
@@ -141,6 +146,8 @@ function createQuad() {
 async function loadShaders(){
 	framebufferShader = await loadShaderProgram('./framebufferShader.vert', './framebufferShader.frag');
 	canvasShader = await loadShaderProgram('./canvasShader.vert', './canvasShader.frag');
+	gl.useProgram(canvasShader);
+	gl.uniform1f(gl.getUniformLocation(canvasShader, 'gridWidth'), GRID_WIDTH);
 }
 
 async function loadShaderProgram(vsPath, fsPath){
@@ -168,12 +175,14 @@ async function loadShaderProgram(vsPath, fsPath){
 
 function getCameraOrthoMatrix(){
 	const matrix = mat4.create();
-	mat4.ortho(matrix, 0, gl.canvas.clientWidth, 0, gl.canvas.clientHeight, 0.0, 1.0); 
+	mat4.ortho(matrix, 0, gl.canvas.clientWidth, 0, gl.canvas.clientHeight, 0.0, 1.0);
+	
+	mat4.translate(matrix, matrix, vec3.fromValues(-camera.x + gl.canvas.clientWidth/2 - GRID_WIDTH/2, -camera.y + gl.canvas.clientHeight/2 - GRID_WIDTH/2, 0));
 
 	const sMatrix = mat4.create();
 	mat4.scale(sMatrix, sMatrix, vec3.fromValues(camera.zoom, camera.zoom, 0.0));
 	mat4.mul(matrix, sMatrix, matrix);
-	mat4.translate(matrix, matrix, vec3.fromValues(-camera.x + gl.canvas.clientWidth/2 - GRID_WIDTH/2, -camera.y + gl.canvas.clientHeight/2 - GRID_WIDTH/2, 0));
+
 
 	return matrix;
 }
