@@ -42,6 +42,10 @@ function loadGameOfLife(path) {
 function initWebGL(){
 	const canvas = document.getElementById('ourCanvas');
 	gl = canvas.getContext('webgl2');
+	if (gl === null) {
+		alert("Unable to initialize WebGL. Your browser or machine may not support it.");
+		return;
+	}
 	canvas.addEventListener('mousedown', e => {
 		if(e.button == 0){
 			isMouseDown = true;
